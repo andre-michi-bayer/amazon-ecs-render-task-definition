@@ -16,6 +16,12 @@ inputs:
   environment-variables:
     description: 'Variables to add to the container. Each variable is of the form KEY=value, you can specify multiple variables with multi-line YAML strings.'
     required: false
+  secrets-file:
+    description: 'Variables to add to the container as secrets. Each variable in the file should have the form KEY=value in each line'
+    required: false
+  environment-variables-file:
+    description: 'Variables to add to the container. Each variable in the file should have the form KEY=value in each line'
+    required: false
   log-configuration-log-driver:
     description: "Create/Override logDriver inside logConfiguration"
     required: false
