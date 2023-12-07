@@ -17,6 +17,8 @@ async function run() {
     const imageURI = core.getInput('image', { required: true });
 
     const environmentVariables = core.getInput('environment-variables', { required: false });
+    const environmentVariablesFile = core.getInput('environment-variables-file', { required: false });
+    const secretsFile = core.getInput('secrets-file', { required: false });
 
     const logConfigurationLogDriver = core.getInput("log-configuration-log-driver", { required: false });
     const logConfigurationOptions = core.getInput("log-configuration-options", { required: false });
