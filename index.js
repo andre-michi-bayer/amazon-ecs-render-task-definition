@@ -127,7 +127,7 @@ async function run() {
         }
         const variable = {
           name: trimmedLine.substring(0, separatorIdx),
-          valueFrom: trimmedLine.substring(separatorIdx + 1),
+          value: trimmedLine.substring(separatorIdx + 1),
         };
         const variableDef = containerDef.environment.find((e) => e.name == variable.name);
         if (variableDef) {
