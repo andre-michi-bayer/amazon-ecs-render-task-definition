@@ -11,6 +11,8 @@ async function run() {
     const imageURI = core.getInput('image', { required: true });
 
     const environmentVariables = core.getInput('environment-variables', { required: false });
+    const environmentVariablesFile = core.getInput('environment-variables-file', { required: false });
+    const secretsFile = core.getInput('secrets-file', { required: false });
 
     const logConfigurationLogDriver = core.getInput("log-configuration-log-driver", { required: false });
     const logConfigurationOptions = core.getInput("log-configuration-options", { required: false });
@@ -72,6 +74,68 @@ async function run() {
           containerDef.environment.push(variable);
         }
       })
+    }
+
+    // Uses a txt file as base to update the task definition with secrets
+    // the file format should be:
+    // ENV_VARIABLE_NAME=SecretARN
+    if (secretsFile) {
+      // If secrets array is missing, create it
+      if (!Array.isArray(containerDef.secrets)) {
+        containerDef.secrets = [];
+      }
+      const data = fs.readFileSync(secretsFile, 'utf8');
+  
+      // Process the file content
+      data.split('\n').forEach(function (line) {
+        const trimmedLine = line.trim();
+        if (trimmedLine.length === 0) { return; }
+            const separatorIdx = trimmedLine.indexOf("=");
+        if (separatorIdx === -1) {
+          throw new Error(`Cannot parse the line '${trimmedLine}'. Lines must be of the form NAME=value.`);
+        }
+        const secret = {
+          name: trimmedLine.substring(0, separatorIdx),
+          valueFrom: trimmedLine.substring(separatorIdx + 1),
+        };
+        const secretDef = containerDef.secrets.find((s) => s.name == secret.name);
+        if (secretDef) {
+          secretDef.value = secret.valueFrom;
+        } else {
+          containerDef.secrets.push(secret);
+        }
+      });
+    }
+    
+    // Uses a txt file as base to update the task definition with environment variables
+    // the file format should be:
+    // ENV_VARIABLE_NAME=value
+    if (environmentVariablesFile) {
+      // If secrets array is missing, create it
+      if (!Array.isArray(containerDef.secrets)) {
+        containerDef.environment = [];
+      }
+      const data = fs.readFileSync(environmentVariablesFile, 'utf8');
+  
+      // Process the file content
+      data.split('\n').forEach(function (line) {
+        const trimmedLine = line.trim();
+        if (trimmedLine.length === 0) { return; }
+            const separatorIdx = trimmedLine.indexOf("=");
+        if (separatorIdx === -1) {
+          throw new Error(`Cannot parse the line '${trimmedLine}'. Lines must be of the form NAME=value.`);
+        }
+        const variable = {
+          name: trimmedLine.substring(0, separatorIdx),
+          valueFrom: trimmedLine.substring(separatorIdx + 1),
+        };
+        const variableDef = containerDef.environment.find((e) => e.name == variable.name);
+        if (variableDef) {
+          variableDef.value = variable.value;
+        } else {
+          containerDef.environment.push(variable);
+        }
+      });
     }
 
     if (logConfigurationLogDriver) {
